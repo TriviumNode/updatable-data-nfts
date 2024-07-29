@@ -64,6 +64,10 @@ pub enum Cw721ExecuteMsg<TMetadataExtension, TMetadataExtensionMsg> {
         token_id: String,
     },
 
+    UpdateUri {
+        uri: String,
+    },
+
     /// Extension msg
     Extension {
         msg: TMetadataExtensionMsg,

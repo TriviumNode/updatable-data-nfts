@@ -109,6 +109,7 @@ pub trait Cw721Execute<
                 self.remove_withdraw_address(deps.storage, &info.sender)
             }
             Cw721ExecuteMsg::WithdrawFunds { amount } => self.withdraw_funds(deps.storage, &amount),
+            Cw721ExecuteMsg::UpdateUri { uri } => self.update_uri_extension(deps, env, info, uri),
         }
     }
 
@@ -356,15 +357,16 @@ pub trait Cw721Execute<
     }
 
     /// Allows creator to update onchain metadata. For now this is a no-op.
-    fn update_metadata_extension(
+    fn update_uri_extension(
         &self,
         deps: DepsMut,
         _env: Env,
         info: MessageInfo,
-        _msg: TMetadataExtensionMsg,
+        uri: String,
     ) -> Result<Response<TCustomResponseMessage>, Cw721ContractError> {
-        cw_ownable::assert_owner(deps.storage, &info.sender)?;
-        Ok(Response::new().add_attribute("action", "update_metadata_extension"))
+        MINTER.assert_owner(deps.storage, &info.sender)?;
+        _update_uri(deps, env, &info, &uri, token_id);
+        Ok(Response::new().add_attribute("action", "update_uri_extension"))
     }
 
     fn set_withdraw_address(
@@ -455,6 +457,27 @@ where
     check_can_send(deps.as_ref(), env, info, &token)?;
     // set owner and remove existing approvals
     token.owner = deps.api.addr_validate(recipient)?;
+    token.approvals = vec![];
+    config.nft_info.save(deps.storage, token_id, &token)?;
+    Ok(token)
+}
+
+fn _update_uri<TMetadataExtension>(
+    deps: DepsMut,
+    env: &Env,
+    info: &MessageInfo,
+    uri: &str,
+    token_id: &str,
+) -> Result<NftInfo<TMetadataExtension>, Cw721ContractError>
+where
+    TMetadataExtension: Serialize + DeserializeOwned + Clone,
+{
+    let config = Cw721Config::<TMetadataExtension, Empty, Empty>::default();
+    let mut token = config.nft_info.load(deps.storage, token_id)?;
+    // ensure we have permissions
+    check_can_send(deps.as_ref(), env, info, &token)?;
+    // set uri and remove existing approvals
+    token.token_uri = Some(uri.to_owned());
     token.approvals = vec![];
     config.nft_info.save(deps.storage, token_id, &token)?;
     Ok(token)
