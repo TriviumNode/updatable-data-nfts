@@ -380,7 +380,7 @@ pub trait Cw721Execute<
         token_id: String,
     ) -> Result<Response<TCustomResponseMessage>, Cw721ContractError> {
         MINTER.assert_owner(deps.storage, &info.sender)?;
-        _update_uri(deps, &env, &info, &uri, &token_id);
+        _update_uri::<TMetadataExtension>(deps, &uri, &token_id)?;
         Ok(Response::new().add_attribute("action", "update_uri_extension"))
     }
 
@@ -479,8 +479,6 @@ where
 
 fn _update_uri<TMetadataExtension>(
     deps: DepsMut,
-    env: &Env,
-    info: &MessageInfo,
     uri: &str,
     token_id: &str,
 ) -> Result<NftInfo<TMetadataExtension>, Cw721ContractError>
