@@ -370,7 +370,7 @@ pub trait Cw721Execute<
         Ok(Response::new().add_attribute("action", "update_metadata_extension"))
     }
 
-    /// Allows creator to update onchain metadata. For now this is a no-op.
+    /// Allows minter to update URI.
     fn update_uri_extension(
         &self,
         deps: DepsMut,
@@ -489,8 +489,6 @@ where
 {
     let config = Cw721Config::<TMetadataExtension, Empty, Empty>::default();
     let mut token = config.nft_info.load(deps.storage, token_id)?;
-    // ensure we have permissions
-    check_can_send(deps.as_ref(), env, info, &token)?;
     // set uri and remove existing approvals
     token.token_uri = Some(uri.to_owned());
     token.approvals = vec![];
