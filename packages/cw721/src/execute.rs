@@ -99,6 +99,9 @@ pub trait Cw721Execute<
             Cw721ExecuteMsg::UpdateOwnership(action) => {
                 self.update_minter_ownership(deps, env, info, action)
             }
+            Cw721ExecuteMsg::Extension { msg } => {
+                self.update_metadata_extension(deps, env, info, msg)
+            }
             Cw721ExecuteMsg::SetWithdrawAddress { address } => {
                 self.set_withdraw_address(deps, &info.sender, address)
             }
@@ -353,6 +356,18 @@ pub trait Cw721Execute<
         Ok(Response::new()
             .add_attribute("update_minter_ownership", info.sender)
             .add_attributes(ownership.into_attributes()))
+    }
+
+    /// Allows creator to update onchain metadata. For now this is a no-op.
+    fn update_metadata_extension(
+        &self,
+        deps: DepsMut,
+        _env: Env,
+        info: MessageInfo,
+        _msg: TMetadataExtensionMsg,
+    ) -> Result<Response<TCustomResponseMessage>, Cw721ContractError> {
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        Ok(Response::new().add_attribute("action", "update_metadata_extension"))
     }
 
     /// Allows creator to update onchain metadata. For now this is a no-op.
