@@ -99,9 +99,6 @@ pub trait Cw721Execute<
             Cw721ExecuteMsg::UpdateOwnership(action) => {
                 self.update_minter_ownership(deps, env, info, action)
             }
-            Cw721ExecuteMsg::Extension { msg } => {
-                self.update_metadata_extension(deps, env, info, msg)
-            }
             Cw721ExecuteMsg::SetWithdrawAddress { address } => {
                 self.set_withdraw_address(deps, &info.sender, address)
             }
@@ -109,7 +106,9 @@ pub trait Cw721Execute<
                 self.remove_withdraw_address(deps.storage, &info.sender)
             }
             Cw721ExecuteMsg::WithdrawFunds { amount } => self.withdraw_funds(deps.storage, &amount),
-            Cw721ExecuteMsg::UpdateUri { uri } => self.update_uri_extension(deps, env, info, uri),
+            Cw721ExecuteMsg::UpdateUri { uri, token_id } => {
+                self.update_uri_extension(deps, env, info, uri, token_id)
+            }
         }
     }
 
@@ -360,12 +359,13 @@ pub trait Cw721Execute<
     fn update_uri_extension(
         &self,
         deps: DepsMut,
-        _env: Env,
+        env: Env,
         info: MessageInfo,
         uri: String,
+        token_id: String,
     ) -> Result<Response<TCustomResponseMessage>, Cw721ContractError> {
         MINTER.assert_owner(deps.storage, &info.sender)?;
-        _update_uri(deps, env, &info, &uri, token_id);
+        _update_uri(deps, &env, &info, &uri, &token_id);
         Ok(Response::new().add_attribute("action", "update_uri_extension"))
     }
 

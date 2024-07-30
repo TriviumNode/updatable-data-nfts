@@ -66,11 +66,7 @@ pub enum Cw721ExecuteMsg<TMetadataExtension, TMetadataExtensionMsg> {
 
     UpdateUri {
         uri: String,
-    },
-
-    /// Extension msg
-    Extension {
-        msg: TMetadataExtensionMsg,
+        token_id: String,
     },
 
     /// Sets address to send withdrawn fees to. Only owner can call this.
