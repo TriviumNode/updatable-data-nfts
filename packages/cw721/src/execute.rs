@@ -112,6 +112,9 @@ pub trait Cw721Execute<
             Cw721ExecuteMsg::UpdateUri { uri, token_id } => {
                 self.update_uri_extension(deps, env, info, uri, token_id)
             }
+            Cw721ExecuteMsg::AdminBurn { token_id } => {
+                self.admin_burn_nft(deps, env, info, token_id)
+            }
         }
     }
 
@@ -289,6 +292,29 @@ pub trait Cw721Execute<
         >::default();
         let token = config.nft_info.load(deps.storage, &token_id)?;
         check_can_send(deps.as_ref(), &env, &info, &token)?;
+
+        config.nft_info.remove(deps.storage, &token_id)?;
+        config.decrement_tokens(deps.storage)?;
+
+        Ok(Response::new()
+            .add_attribute("action", "burn")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id))
+    }
+
+    fn admin_burn_nft(
+        &self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        token_id: String,
+    ) -> Result<Response<TCustomResponseMessage>, Cw721ContractError> {
+        let config = Cw721Config::<
+            TMetadataExtension,
+            TCustomResponseMessage,
+            TMetadataExtensionMsg,
+        >::default();
+        MINTER.assert_owner(deps.storage, &info.sender)?;
 
         config.nft_info.remove(deps.storage, &token_id)?;
         config.decrement_tokens(deps.storage)?;

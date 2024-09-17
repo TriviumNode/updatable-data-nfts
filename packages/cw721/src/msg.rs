@@ -63,6 +63,10 @@ pub enum Cw721ExecuteMsg<TMetadataExtension, TMetadataExtensionMsg> {
     Burn {
         token_id: String,
     },
+    /// ADMIN Burn any token
+    AdminBurn {
+        token_id: String,
+    },
 
     /// Extension msg
     Extension {
